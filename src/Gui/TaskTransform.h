@@ -125,8 +125,7 @@ private:
     void resetReferencePlacement();
     void resetReferenceRotation();
 
-    ViewProviderDragger::DraggerComponents getRelevantComponents();
-    void moveObjectToDragger(ViewProviderDragger::DraggerComponents components = ViewProviderDragger::DraggerComponent::All);
+    void moveObjectToDragger();
 
     bool isDraggerAlignedToCoordinateSystem() const;
 

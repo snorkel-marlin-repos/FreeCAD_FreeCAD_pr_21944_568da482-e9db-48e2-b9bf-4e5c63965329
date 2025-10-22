@@ -366,30 +366,25 @@ void DSHLineControllerBase::doEnforceControlParameters(Base::Vector2d& onSketchP
 {
     switch (handler->state()) {
         case SelectMode::SeekFirst: {
-            auto& firstParam = onViewParameters[OnViewParameter::First];
-            auto& secondParam = onViewParameters[OnViewParameter::Second];
-
-            if (firstParam->isSet) {
-                onSketchPos.x = firstParam->getValue();
+            if (onViewParameters[OnViewParameter::First]->isSet) {
+                onSketchPos.x = onViewParameters[OnViewParameter::First]->getValue();
             }
 
-            if (secondParam->isSet) {
-                onSketchPos.y = secondParam->getValue();
+            if (onViewParameters[OnViewParameter::Second]->isSet) {
+                onSketchPos.y = onViewParameters[OnViewParameter::Second]->getValue();
             }
         } break;
         case SelectMode::SeekSecond: {
-            auto& thirdParam = onViewParameters[OnViewParameter::Third];
-            auto& fourthParam = onViewParameters[OnViewParameter::Fourth];
-
             if (handler->constructionMethod() == ConstructionMethod::OnePointWidthHeight) {
-                if (thirdParam->isSet) {
-                    double length = thirdParam->getValue();
+                if (onViewParameters[OnViewParameter::Third]->isSet) {
+                    double length = onViewParameters[OnViewParameter::Third]->getValue();
                     if (fabs(length) < Precision::Confusion()) {
                         // Both cannot be 0
-                        if (fourthParam->isSet) {
-                            double width = fourthParam->getValue();
+                        if (onViewParameters[OnViewParameter::Fourth]->isSet) {
+                            double width = onViewParameters[OnViewParameter::Fourth]->getValue();
                             if (fabs(width) < Precision::Confusion()) {
-                                unsetOnViewParameter(thirdParam.get());
+                                unsetOnViewParameter(
+                                    onViewParameters[OnViewParameter::Third].get());
                                 return;
                             }
                         }
@@ -398,14 +393,15 @@ void DSHLineControllerBase::doEnforceControlParameters(Base::Vector2d& onSketchP
                     onSketchPos.x = handler->startPoint.x + sign * length;
                 }
 
-                if (fourthParam->isSet) {
-                    double width = fourthParam->getValue();
+                if (onViewParameters[OnViewParameter::Fourth]->isSet) {
+                    double width = onViewParameters[OnViewParameter::Fourth]->getValue();
                     if (fabs(width) < Precision::Confusion()) {
                         // Both cannot be 0
-                        if (thirdParam->isSet) {
-                            double length = thirdParam->getValue();
+                        if (onViewParameters[OnViewParameter::Third]->isSet) {
+                            double length = onViewParameters[OnViewParameter::Third]->getValue();
                             if (fabs(length) < Precision::Confusion()) {
-                                unsetOnViewParameter(fourthParam.get());
+                                unsetOnViewParameter(
+                                    onViewParameters[OnViewParameter::Fourth].get());
                                 return;
                             }
                         }
@@ -422,36 +418,38 @@ void DSHLineControllerBase::doEnforceControlParameters(Base::Vector2d& onSketchP
                 }
                 double length = dir.Length();
 
-                if (thirdParam->isSet) {
-                    length = thirdParam->getValue();
+                if (onViewParameters[OnViewParameter::Third]->isSet) {
+                    length = onViewParameters[OnViewParameter::Third]->getValue();
                     if (length < Precision::Confusion()) {
-                        unsetOnViewParameter(thirdParam.get());
+                        unsetOnViewParameter(onViewParameters[OnViewParameter::Third].get());
                         return;
                     }
 
                     onSketchPos = handler->startPoint + length * dir.Normalize();
                 }
 
-                if (fourthParam->isSet) {
-                    double angle = Base::toRadians(fourthParam->getValue());
+                if (onViewParameters[OnViewParameter::Fourth]->isSet) {
+                    double angle =
+                        Base::toRadians(onViewParameters[OnViewParameter::Fourth]->getValue());
                     Base::Vector2d ovpDir(cos(angle), sin(angle));
                     onSketchPos.ProjectToLine(onSketchPos - handler->startPoint, ovpDir);
                     onSketchPos += handler->startPoint;
                 }
             }
             else {
-                if (thirdParam->isSet) {
-                    onSketchPos.x = thirdParam->getValue();
+                if (onViewParameters[OnViewParameter::Third]->isSet) {
+                    onSketchPos.x = onViewParameters[OnViewParameter::Third]->getValue();
                 }
-                if (fourthParam->isSet) {
-                    onSketchPos.y = fourthParam->getValue();
+                if (onViewParameters[OnViewParameter::Fourth]->isSet) {
+                    onSketchPos.y = onViewParameters[OnViewParameter::Fourth]->getValue();
                 }
             }
 
-            if (thirdParam->isSet && fourthParam->isSet
+            if (onViewParameters[OnViewParameter::Third]->isSet
+                && onViewParameters[OnViewParameter::Fourth]->isSet
                 && (onSketchPos - handler->startPoint).Length() < Precision::Confusion()) {
-                unsetOnViewParameter(thirdParam.get());
-                unsetOnViewParameter(fourthParam.get());
+                unsetOnViewParameter(onViewParameters[OnViewParameter::Third].get());
+                unsetOnViewParameter(onViewParameters[OnViewParameter::Fourth].get());
             }
         } break;
         default:
@@ -464,65 +462,62 @@ void DSHLineController::adaptParameters(Base::Vector2d onSketchPos)
 {
     switch (handler->state()) {
         case SelectMode::SeekFirst: {
-            auto& firstParam = onViewParameters[OnViewParameter::First];
-            auto& secondParam = onViewParameters[OnViewParameter::Second];
-
-            if (!firstParam->isSet) {
+            if (!onViewParameters[OnViewParameter::First]->isSet) {
                 setOnViewParameterValue(OnViewParameter::First, onSketchPos.x);
             }
 
-            if (!secondParam->isSet) {
+            if (!onViewParameters[OnViewParameter::Second]->isSet) {
                 setOnViewParameterValue(OnViewParameter::Second, onSketchPos.y);
             }
 
             bool sameSign = onSketchPos.x * onSketchPos.y > 0.;
-            firstParam->setLabelAutoDistanceReverse(!sameSign);
-            secondParam->setLabelAutoDistanceReverse(sameSign);
-            firstParam->setPoints(Base::Vector3d(), toVector3d(onSketchPos));
-            secondParam->setPoints(Base::Vector3d(), toVector3d(onSketchPos));
+            onViewParameters[OnViewParameter::First]->setLabelAutoDistanceReverse(!sameSign);
+            onViewParameters[OnViewParameter::Second]->setLabelAutoDistanceReverse(sameSign);
+            onViewParameters[OnViewParameter::First]->setPoints(Base::Vector3d(),
+                                                                toVector3d(onSketchPos));
+            onViewParameters[OnViewParameter::Second]->setPoints(Base::Vector3d(),
+                                                                 toVector3d(onSketchPos));
         } break;
         case SelectMode::SeekSecond: {
-            auto& thirdParam = onViewParameters[OnViewParameter::Third];
-            auto& fourthParam = onViewParameters[OnViewParameter::Fourth];
-
             if (handler->constructionMethod() == ConstructionMethod::OnePointWidthHeight) {
                 Base::Vector3d start = toVector3d(handler->startPoint);
                 Base::Vector3d end = toVector3d(handler->endPoint);
                 Base::Vector3d vec = end - start;
 
-                if (!thirdParam->isSet) {
+                if (!onViewParameters[OnViewParameter::Third]->isSet) {
                     setOnViewParameterValue(OnViewParameter::Third, fabs(vec.x));
                 }
 
-                if (!fourthParam->isSet) {
+                if (!onViewParameters[OnViewParameter::Fourth]->isSet) {
                     setOnViewParameterValue(OnViewParameter::Fourth, fabs(vec.y));
                 }
 
                 bool sameSign = vec.x * vec.y > 0.;
 
-                thirdParam->setLabelAutoDistanceReverse(!sameSign);
-                fourthParam->setLabelAutoDistanceReverse(sameSign);
+                onViewParameters[OnViewParameter::Third]->setLabelAutoDistanceReverse(!sameSign);
+                onViewParameters[OnViewParameter::Fourth]->setLabelAutoDistanceReverse(sameSign);
 
-                thirdParam->setPoints(start, end);
-                fourthParam->setPoints(start, end);
+                onViewParameters[OnViewParameter::Third]->setPoints(start, end);
+                onViewParameters[OnViewParameter::Fourth]->setPoints(start, end);
             }
             else if (handler->constructionMethod() == ConstructionMethod::OnePointLengthAngle) {
                 Base::Vector3d start = toVector3d(handler->startPoint);
                 Base::Vector3d end = toVector3d(handler->endPoint);
                 Base::Vector3d vec = end - start;
 
-                if (!thirdParam->isSet) {
+                if (!onViewParameters[OnViewParameter::Third]->isSet) {
                     setOnViewParameterValue(OnViewParameter::Third, vec.Length());
                 }
 
                 double range = (handler->endPoint - handler->startPoint).Angle();
-                if (!fourthParam->isSet) {
+                if (!onViewParameters[OnViewParameter::Fourth]->isSet) {
                     setOnViewParameterValue(OnViewParameter::Fourth,
                                             Base::toDegrees(range),
                                             Base::Unit::Angle);
                 }
                 else if (vec.Length() > Precision::Confusion()) {
-                    double ovpRange = Base::toRadians(fourthParam->getValue());
+                    double ovpRange =
+                        Base::toRadians(onViewParameters[OnViewParameter::Fourth]->getValue());
                     if (fabs(range - ovpRange) > Precision::Confusion()) {
                         setOnViewParameterValue(OnViewParameter::Fourth,
                                                 Base::toDegrees(range),
@@ -530,24 +525,26 @@ void DSHLineController::adaptParameters(Base::Vector2d onSketchPos)
                     }
                 }
 
-                thirdParam->setPoints(start, end);
-                fourthParam->setPoints(start, Base::Vector3d());
-                fourthParam->setLabelRange(range);
+                onViewParameters[OnViewParameter::Third]->setPoints(start, end);
+                onViewParameters[OnViewParameter::Fourth]->setPoints(start, Base::Vector3d());
+                onViewParameters[OnViewParameter::Fourth]->setLabelRange(range);
             }
             else {
-                if (!thirdParam->isSet) {
+                if (!onViewParameters[OnViewParameter::Third]->isSet) {
                     setOnViewParameterValue(OnViewParameter::Third, onSketchPos.x);
                 }
 
-                if (!fourthParam->isSet) {
+                if (!onViewParameters[OnViewParameter::Fourth]->isSet) {
                     setOnViewParameterValue(OnViewParameter::Fourth, onSketchPos.y);
                 }
 
                 bool sameSign = onSketchPos.x * onSketchPos.y > 0.;
-                thirdParam->setLabelAutoDistanceReverse(!sameSign);
-                fourthParam->setLabelAutoDistanceReverse(sameSign);
-                thirdParam->setPoints(Base::Vector3d(), toVector3d(onSketchPos));
-                fourthParam->setPoints(Base::Vector3d(), toVector3d(onSketchPos));
+                onViewParameters[OnViewParameter::Third]->setLabelAutoDistanceReverse(!sameSign);
+                onViewParameters[OnViewParameter::Fourth]->setLabelAutoDistanceReverse(sameSign);
+                onViewParameters[OnViewParameter::Third]->setPoints(Base::Vector3d(),
+                                                                    toVector3d(onSketchPos));
+                onViewParameters[OnViewParameter::Fourth]->setPoints(Base::Vector3d(),
+                                                                     toVector3d(onSketchPos));
             }
         } break;
         default:
@@ -560,18 +557,16 @@ void DSHLineController::doChangeDrawSketchHandlerMode()
 {
     switch (handler->state()) {
         case SelectMode::SeekFirst: {
-            auto& firstParam = onViewParameters[OnViewParameter::First];
-            auto& secondParam = onViewParameters[OnViewParameter::Second];
+            if (onViewParameters[OnViewParameter::First]->isSet
+                && onViewParameters[OnViewParameter::Second]->isSet) {
 
-            if (firstParam->hasFinishedEditing && secondParam->hasFinishedEditing) {
                 handler->setState(SelectMode::SeekSecond);
             }
         } break;
         case SelectMode::SeekSecond: {
-            auto& thirdParam = onViewParameters[OnViewParameter::Third];
-            auto& fourthParam = onViewParameters[OnViewParameter::Fourth];
+            if (onViewParameters[OnViewParameter::Third]->hasFinishedEditing
+                || onViewParameters[OnViewParameter::Fourth]->hasFinishedEditing) {
 
-            if (thirdParam->hasFinishedEditing && fourthParam->hasFinishedEditing) {
                 handler->setState(SelectMode::End);
             }
         } break;

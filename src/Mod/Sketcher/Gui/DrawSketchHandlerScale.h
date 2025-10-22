@@ -132,11 +132,6 @@ public:
     }
 
 
-    std::list<Gui::InputHint> getToolHints() const override
-    {
-        return lookupScaleHints(state());
-    }
-
 private:
     void updateDataAndDrawToPosition(Base::Vector2d onSketchPos) override
     {
@@ -232,17 +227,6 @@ private:
                        // to continue even if the scaling failed
     bool allowOriginConstraint;  // Conserve constraints with origin
     double refLength, length, scaleFactor;
-
-    struct HintEntry
-    {
-        SelectMode state;
-        std::list<Gui::InputHint> hints;
-    };
-
-    using HintTable = std::vector<HintEntry>;
-
-    static HintTable getScaleHintTable();
-    static std::list<Gui::InputHint> lookupScaleHints(SelectMode state);
 
 
     void deleteOriginalGeos()
@@ -383,29 +367,33 @@ private:
                     continue;
                 }
 
+                int firstIndex = indexOfGeoId(listOfGeoIds, cstr->First);
+                int secondIndex = indexOfGeoId(listOfGeoIds, cstr->Second);
+                int thirdIndex = indexOfGeoId(listOfGeoIds, cstr->Third);
+
                 auto newConstr = std::unique_ptr<Constraint>(cstr->copy());
-                newConstr->First = offsetGeoID(newConstr->First, firstCurveCreated);
+                newConstr->First = offsetGeoID(firstIndex, firstCurveCreated);
 
                 if ((cstr->Type == Symmetric || cstr->Type == Tangent || cstr->Type == Perpendicular
                      || cstr->Type == Angle)
-                    && cstr->Second != GeoEnum::GeoUndef && cstr->Third != GeoEnum::GeoUndef) {
-                    newConstr->Second = offsetGeoID(cstr->Second, firstCurveCreated);
-                    newConstr->Third = offsetGeoID(cstr->Third, firstCurveCreated);
+                    && secondIndex != GeoEnum::GeoUndef && thirdIndex != GeoEnum::GeoUndef) {
+                    newConstr->Second = offsetGeoID(secondIndex, firstCurveCreated);
+                    newConstr->Third = offsetGeoID(thirdIndex, firstCurveCreated);
                 }
                 else if ((cstr->Type == Coincident || cstr->Type == Tangent
                           || cstr->Type == Symmetric || cstr->Type == Perpendicular
                           || cstr->Type == Parallel || cstr->Type == Equal || cstr->Type == Angle
                           || cstr->Type == PointOnObject || cstr->Type == InternalAlignment)
-                         && cstr->Second != GeoEnum::GeoUndef && cstr->Third == GeoEnum::GeoUndef) {
-                    newConstr->Second = offsetGeoID(cstr->Second, firstCurveCreated);
+                         && secondIndex != GeoEnum::GeoUndef && thirdIndex == GeoEnum::GeoUndef) {
+                    newConstr->Second = offsetGeoID(secondIndex, firstCurveCreated);
                 }
                 else if (cstr->Type == Radius || cstr->Type == Diameter) {
                     newConstr->setValue(newConstr->getValue() * scaleFactor);
                 }
                 else if ((cstr->Type == Distance || cstr->Type == DistanceX
                           || cstr->Type == DistanceY)
-                         && cstr->Second != GeoEnum::GeoUndef) {
-                    newConstr->Second = offsetGeoID(cstr->Second, firstCurveCreated);
+                         && secondIndex != GeoEnum::GeoUndef) {
+                    newConstr->Second = offsetGeoID(secondIndex, firstCurveCreated);
                     newConstr->setValue(newConstr->getValue() * scaleFactor);
                 }
                 // (cstr->Type == Block || cstr->Type == Weight)
@@ -440,12 +428,9 @@ private:
     // this assumes that a call to skipConstraint() has been
     // performed and that the constraint is valid within the context
     // of the scale operation
-    int offsetGeoID(int id, int firstCurveCreated)
+    int offsetGeoID(int index, int firstCurveCreated)
     {
-        if (id < 0) {  // Covers external geometry, origin and undef
-            return id;
-        }
-        return indexOfGeoId(listOfGeoIds, id) + firstCurveCreated;
+        return index < 0 ? index : index + firstCurveCreated;
     }
     Base::Vector3d getScaledPoint(Base::Vector3d&& pointToScale,
                                   const Base::Vector2d& referencePoint,
@@ -462,30 +447,6 @@ private:
         return pointToScale;
     }
 };
-
-DrawSketchHandlerScale::HintTable DrawSketchHandlerScale::getScaleHintTable()
-{
-    using enum Gui::InputHint::UserInput;
-
-    return {
-        {.state = SelectMode::SeekFirst,
-         .hints = {{QObject::tr("%1 pick reference point", "Sketcher Scale: hint"), {MouseLeft}}}},
-        {.state = SelectMode::SeekSecond,
-         .hints = {{QObject::tr("%1 set reference length", "Sketcher Scale: hint"), {MouseLeft}}}},
-        {.state = SelectMode::SeekThird,
-         .hints = {{QObject::tr("%1 set scale factor", "Sketcher Scale: hint"), {MouseLeft}}}}};
-}
-
-std::list<Gui::InputHint> DrawSketchHandlerScale::lookupScaleHints(SelectMode state)
-{
-    const auto scaleHintTable = getScaleHintTable();
-
-    auto it = std::ranges::find_if(scaleHintTable, [state](const HintEntry& entry) {
-        return entry.state == state;
-    });
-
-    return (it != scaleHintTable.end()) ? it->hints : std::list<Gui::InputHint> {};
-}
 
 template<>
 auto DSHScaleControllerBase::getState(int labelindex) const

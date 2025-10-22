@@ -21,8 +21,7 @@
 # **************************************************************************
 
 
-import os, tempfile, unittest
-import FreeCAD, Part, Sketcher
+import FreeCAD, os, sys, unittest, Part, Sketcher
 from Part import Precision
 
 App = FreeCAD
@@ -464,7 +463,8 @@ class TestSketcherSolver(unittest.TestCase):
         sketch.addConstraint(
             [Sketcher.Constraint("Block", c_idx), Sketcher.Constraint("Block", l_idx)]
         )
-        expected_distance = radius / 2  # note that we don't set this in the constraint below!
+        # use a negative distance to tell "line is within the circle"
+        expected_distance = -radius / 2  # note that we don't set this in the constraint below!
         # TODO: addConstraint(constraint) triggers a solve (for godd reasons) however, this way
         # one cannot add non-driving constraints. In contrast, addConstraint(list(constraint))
         # does not solve automatically, thus we use this "overload".
@@ -558,7 +558,7 @@ class TestSketcherSolver(unittest.TestCase):
             self.Doc.recompute()
 
             # Act: Save and reload the file
-            filename = tempfile.gettempdir() + os.sep + self.Doc.Name + ".FCStd"
+            filename = self.Doc.Name + ".FCStd"
             self.Doc.saveAs(filename)
             FreeCAD.closeDocument(self.Doc.Name)
             self.Doc = FreeCAD.openDocument(filename)
@@ -607,7 +607,7 @@ class TestSketcherSolver(unittest.TestCase):
             self.assertEqual(len(extRefsAll), 3)
             self.assertEqual(root.tag, "all")
             # Act
-            filename = tempfile.gettempdir() + os.sep + self.Doc.Name + ".FCStd"
+            filename = self.Doc.Name + ".FCStd"
             self.Doc.saveAs(filename)
             FreeCAD.closeDocument(self.Doc.Name)
             self.Doc = FreeCAD.openDocument(filename)

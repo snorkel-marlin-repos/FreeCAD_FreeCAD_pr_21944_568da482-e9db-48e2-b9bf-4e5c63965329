@@ -207,10 +207,6 @@ void ImpExpDxfRead::OnReadLine(const Base::Vector3d& start,
                                const Base::Vector3d& end,
                                bool /*hidden*/)
 {
-    if (shouldSkipEntity()) {
-        return;
-    }
-
     gp_Pnt p0 = makePoint(start);
     gp_Pnt p1 = makePoint(end);
     if (p0.IsEqual(p1, 0.00000001)) {
@@ -223,10 +219,6 @@ void ImpExpDxfRead::OnReadLine(const Base::Vector3d& start,
 
 void ImpExpDxfRead::OnReadPoint(const Base::Vector3d& start)
 {
-    if (shouldSkipEntity()) {
-        return;
-    }
-
     Collector->AddObject(BRepBuilderAPI_MakeVertex(makePoint(start)).Vertex(), "Point");
 }
 
@@ -237,10 +229,6 @@ void ImpExpDxfRead::OnReadArc(const Base::Vector3d& start,
                               bool dir,
                               bool /*hidden*/)
 {
-    if (shouldSkipEntity()) {
-        return;
-    }
-
     gp_Pnt p0 = makePoint(start);
     gp_Pnt p1 = makePoint(end);
     gp_Dir up(0, 0, 1);
@@ -263,10 +251,6 @@ void ImpExpDxfRead::OnReadCircle(const Base::Vector3d& start,
                                  bool dir,
                                  bool /*hidden*/)
 {
-    if (shouldSkipEntity()) {
-        return;
-    }
-
     gp_Pnt p0 = makePoint(start);
     gp_Dir up(0, 0, 1);
     if (!dir) {
@@ -409,10 +393,6 @@ void ImpExpDxfRead::OnReadEllipse(const Base::Vector3d& center,
                                   bool dir)
 // NOLINTEND(bugprone-easily-swappable-parameters)
 {
-    if (shouldSkipEntity()) {
-        return;
-    }
-
     gp_Dir up(0, 0, 1);
     if (!dir) {
         up = -up;
@@ -434,10 +414,6 @@ void ImpExpDxfRead::OnReadText(const Base::Vector3d& point,
                                const std::string& text,
                                const double rotation)
 {
-    if (shouldSkipEntity()) {
-        return;
-    }
-
     // Note that our parameters do not contain all the information needed to properly orient the
     // text. As a result the text will always appear on the XY plane
     if (m_importAnnotations) {
@@ -478,10 +454,6 @@ void ImpExpDxfRead::OnReadInsert(const Base::Vector3d& point,
                                  const std::string& name,
                                  double rotation)
 {
-    if (shouldSkipEntity()) {
-        return;
-    }
-
     Collector->AddInsert(point, scale, name, rotation);
 }
 void ImpExpDxfRead::ExpandInsert(const std::string& name,
@@ -562,10 +534,6 @@ void ImpExpDxfRead::OnReadDimension(const Base::Vector3d& start,
                                     const Base::Vector3d& point,
                                     double /*rotation*/)
 {
-    if (shouldSkipEntity()) {
-        return;
-    }
-
     if (m_importAnnotations) {
         auto makeDimension =
             [this, start, end, point](const Base::Matrix4D& transform) -> App::FeaturePython* {
@@ -608,10 +576,6 @@ void ImpExpDxfRead::OnReadDimension(const Base::Vector3d& start,
 }
 void ImpExpDxfRead::OnReadPolyline(std::list<VertexInfo>& vertices, int flags)
 {
-    if (shouldSkipEntity()) {
-        return;
-    }
-
     std::map<CDxfRead::CommonEntityAttributes, std::list<TopoDS_Shape>> ShapesToCombine;
     {
         // TODO: Currently ExpandPolyline calls OnReadArc etc to generate the pieces, and these
