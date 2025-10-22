@@ -354,39 +354,34 @@ void DSHPolygonControllerBase::doEnforceControlParameters(Base::Vector2d& onSket
 {
     switch (handler->state()) {
         case SelectMode::SeekFirst: {
-            auto& firstParam = onViewParameters[OnViewParameter::First];
-            auto& secondParam = onViewParameters[OnViewParameter::Second];
-
-            if (firstParam->isSet) {
-                onSketchPos.x = firstParam->getValue();
+            if (onViewParameters[OnViewParameter::First]->isSet) {
+                onSketchPos.x = onViewParameters[OnViewParameter::First]->getValue();
             }
 
-            if (secondParam->isSet) {
-                onSketchPos.y = secondParam->getValue();
+            if (onViewParameters[OnViewParameter::Second]->isSet) {
+                onSketchPos.y = onViewParameters[OnViewParameter::Second]->getValue();
             }
         } break;
         case SelectMode::SeekSecond: {
-            auto& thirdParam = onViewParameters[OnViewParameter::Third];
-            auto& fourthParam = onViewParameters[OnViewParameter::Fourth];
-
             Base::Vector2d dir = onSketchPos - handler->centerPoint;
             if (dir.Length() < Precision::Confusion()) {
                 dir.x = 1.0;  // if direction null, default to (1,0)
             }
             double length = dir.Length();
 
-            if (thirdParam->isSet) {
-                length = thirdParam->getValue();
+            if (onViewParameters[OnViewParameter::Third]->isSet) {
+                length = onViewParameters[OnViewParameter::Third]->getValue();
                 if (length < Precision::Confusion()) {
-                    unsetOnViewParameter(thirdParam.get());
+                    unsetOnViewParameter(onViewParameters[OnViewParameter::Third].get());
                     return;
                 }
 
                 onSketchPos = handler->centerPoint + length * dir.Normalize();
             }
 
-            if (fourthParam->isSet) {
-                double angle = Base::toRadians(fourthParam->getValue());
+            if (onViewParameters[OnViewParameter::Fourth]->isSet) {
+                double angle =
+                    Base::toRadians(onViewParameters[OnViewParameter::Fourth]->getValue());
                 onSketchPos.x = handler->centerPoint.x + cos(angle) * length;
                 onSketchPos.y = handler->centerPoint.y + sin(angle) * length;
             }
@@ -401,45 +396,41 @@ void DSHPolygonController::adaptParameters(Base::Vector2d onSketchPos)
 {
     switch (handler->state()) {
         case SelectMode::SeekFirst: {
-            auto& firstParam = onViewParameters[OnViewParameter::First];
-            auto& secondParam = onViewParameters[OnViewParameter::Second];
-
-            if (!firstParam->isSet) {
+            if (!onViewParameters[OnViewParameter::First]->isSet) {
                 setOnViewParameterValue(OnViewParameter::First, onSketchPos.x);
             }
 
-            if (!secondParam->isSet) {
+            if (!onViewParameters[OnViewParameter::Second]->isSet) {
                 setOnViewParameterValue(OnViewParameter::Second, onSketchPos.y);
             }
 
             bool sameSign = onSketchPos.x * onSketchPos.y > 0.;
-            firstParam->setLabelAutoDistanceReverse(!sameSign);
-            secondParam->setLabelAutoDistanceReverse(sameSign);
-            firstParam->setPoints(Base::Vector3d(), toVector3d(onSketchPos));
-            secondParam->setPoints(Base::Vector3d(), toVector3d(onSketchPos));
+            onViewParameters[OnViewParameter::First]->setLabelAutoDistanceReverse(!sameSign);
+            onViewParameters[OnViewParameter::Second]->setLabelAutoDistanceReverse(sameSign);
+            onViewParameters[OnViewParameter::First]->setPoints(Base::Vector3d(),
+                                                                toVector3d(onSketchPos));
+            onViewParameters[OnViewParameter::Second]->setPoints(Base::Vector3d(),
+                                                                 toVector3d(onSketchPos));
         } break;
         case SelectMode::SeekSecond: {
-            auto& thirdParam = onViewParameters[OnViewParameter::Third];
-            auto& fourthParam = onViewParameters[OnViewParameter::Fourth];
-
             Base::Vector3d start = toVector3d(handler->centerPoint);
             Base::Vector3d end = toVector3d(handler->firstCorner);
             Base::Vector3d vec = end - start;
 
-            if (!thirdParam->isSet) {
+            if (!onViewParameters[OnViewParameter::Third]->isSet) {
                 setOnViewParameterValue(OnViewParameter::Third, vec.Length());
             }
 
             double range = (handler->firstCorner - handler->centerPoint).Angle();
-            if (!fourthParam->isSet) {
+            if (!onViewParameters[OnViewParameter::Fourth]->isSet) {
                 setOnViewParameterValue(OnViewParameter::Fourth,
                                         Base::toDegrees(range),
                                         Base::Unit::Angle);
             }
 
-            thirdParam->setPoints(start, end);
-            fourthParam->setPoints(start, Base::Vector3d());
-            fourthParam->setLabelRange(range);
+            onViewParameters[OnViewParameter::Third]->setPoints(start, end);
+            onViewParameters[OnViewParameter::Fourth]->setPoints(start, Base::Vector3d());
+            onViewParameters[OnViewParameter::Fourth]->setLabelRange(range);
 
         } break;
         default:
@@ -452,18 +443,16 @@ void DSHPolygonController::doChangeDrawSketchHandlerMode()
 {
     switch (handler->state()) {
         case SelectMode::SeekFirst: {
-            auto& firstParam = onViewParameters[OnViewParameter::First];
-            auto& secondParam = onViewParameters[OnViewParameter::Second];
+            if (onViewParameters[OnViewParameter::First]->isSet
+                && onViewParameters[OnViewParameter::Second]->isSet) {
 
-            if (firstParam->hasFinishedEditing && secondParam->hasFinishedEditing) {
                 handler->setState(SelectMode::SeekSecond);
             }
         } break;
         case SelectMode::SeekSecond: {
-            auto& thirdParam = onViewParameters[OnViewParameter::Third];
-            auto& fourthParam = onViewParameters[OnViewParameter::Fourth];
+            if (onViewParameters[OnViewParameter::Third]->hasFinishedEditing
+                || onViewParameters[OnViewParameter::Fourth]->hasFinishedEditing) {
 
-            if (thirdParam->hasFinishedEditing && fourthParam->hasFinishedEditing) {
                 handler->setState(SelectMode::End);
             }
         } break;

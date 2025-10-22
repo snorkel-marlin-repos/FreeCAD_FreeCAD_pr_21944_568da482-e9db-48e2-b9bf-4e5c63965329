@@ -191,15 +191,6 @@ private:
         generateSourceWires();
     }
 
-public:
-    std::list<Gui::InputHint> getToolHints() const override
-    {
-        using enum Gui::InputHint::UserInput;
-
-        return {{QObject::tr("%1 set offset direction and distance", "Sketcher Offset: hint"),
-                 {MouseLeft}}};
-    }
-
 private:
     class CoincidencePointPos
     {
@@ -1189,13 +1180,11 @@ void DSHOffsetController::adaptParameters(Base::Vector2d onSketchPos)
 
     switch (handler->state()) {
         case SelectMode::SeekFirst: {
-            auto& firstParam = onViewParameters[OnViewParameter::First];
-
-            if (!firstParam->isSet) {
+            if (!onViewParameters[OnViewParameter::First]->isSet) {
                 setOnViewParameterValue(OnViewParameter::First, handler->offsetLength);
             }
 
-            firstParam->setPoints(
+            onViewParameters[OnViewParameter::First]->setPoints(
                 Base::Vector3d(handler->endpoint.x, handler->endpoint.y, 0.),
                 Base::Vector3d(handler->pointOnSourceWire.x, handler->pointOnSourceWire.y, 0.));
         } break;
@@ -1209,9 +1198,7 @@ void DSHOffsetController::doChangeDrawSketchHandlerMode()
 {
     switch (handler->state()) {
         case SelectMode::SeekFirst: {
-            auto& firstParam = onViewParameters[OnViewParameter::First];
-
-            if (firstParam->hasFinishedEditing) {
+            if (onViewParameters[OnViewParameter::First]->hasFinishedEditing) {
                 handler->setState(SelectMode::End);
             }
         } break;

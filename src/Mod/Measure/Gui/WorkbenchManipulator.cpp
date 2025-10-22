@@ -1,7 +1,5 @@
-// SPDX-License-Identifier: LGPL-2.1-or-later
-
 /***************************************************************************
- *   Copyright (c) 2024 Mario Passaglia <mpassaglia[at]cbc.uba.ar>         *
+ *   Copyright (c) 2024 David Friedli <david[at]friedli-be.ch>             *
  *                                                                         *
  *   This file is part of FreeCAD.                                         *
  *                                                                         *
@@ -21,46 +19,33 @@
  *                                                                         *
  **************************************************************************/
 
+
 #include "PreCompiled.h"
-#ifndef _PreComp_
-#include <Python.h>
-#endif
+#include "WorkbenchManipulator.h"
+#include <Gui/MenuManager.h>
+#include <Gui/ToolBarManager.h>
 
-#include "FemPostObjectPy.h"
-#include "FemPostObjectPy.cpp"
+using namespace MeasureGui;
 
-
-using namespace Fem;
-
-// returns a string which represent the object e.g. when printed in python
-std::string FemPostObjectPy::representation() const
+void WorkbenchManipulator::modifyMenuBar([[maybe_unused]] Gui::MenuItem* menuBar)
 {
-    std::stringstream str;
-    str << "<FemPostObject object at " << getFemPostObjectPtr() << ">";
-
-    return str.str();
+    auto menuTools = menuBar->findItem("&Tools");
+    if (!menuTools) {
+        return;
+    }
+    auto itemMeasure = new Gui::MenuItem();
+    itemMeasure->setCommand("Std_Measure");
+    menuTools->appendItem(itemMeasure);
 }
 
-PyObject* FemPostObjectPy::writeVTK(PyObject* args)
+void WorkbenchManipulator::modifyToolBars(Gui::ToolBarItem* toolBar)
 {
-    char* filename;
-    if (!PyArg_ParseTuple(args, "et", "utf-8", &filename)) {
-        return nullptr;
+    auto tbView = toolBar->findItem("View");
+    if (!tbView) {
+        return;
     }
 
-    std::string utf8Name(filename);
-    PyMem_Free(filename);
-    getFemPostObjectPtr()->writeVTK(utf8Name.c_str());
-
-    Py_Return;
-}
-
-PyObject* FemPostObjectPy::getCustomAttributes(const char* /*attr*/) const
-{
-    return nullptr;
-}
-
-int FemPostObjectPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)
-{
-    return 0;
+    auto itemMeasure = new Gui::ToolBarItem();
+    itemMeasure->setCommand("Std_Measure");
+    tbView->appendItem(itemMeasure);
 }

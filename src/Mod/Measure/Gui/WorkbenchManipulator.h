@@ -1,7 +1,5 @@
-// SPDX-License-Identifier: LGPL-2.1-or-later
-
 /***************************************************************************
- *   Copyright (c) 2024 Mario Passaglia <mpassaglia[at]cbc.uba.ar>         *
+ *   Copyright (c) 2024 David Friedli <david[at]friedli-be.ch>             *
  *                                                                         *
  *   This file is part of FreeCAD.                                         *
  *                                                                         *
@@ -21,46 +19,23 @@
  *                                                                         *
  **************************************************************************/
 
-#include "PreCompiled.h"
-#ifndef _PreComp_
-#include <Python.h>
-#endif
 
-#include "FemPostObjectPy.h"
-#include "FemPostObjectPy.cpp"
+#ifndef MEASUREGUI_WORKBENCHMANIPULATOR_H
+#define MEASUREGUI_WORKBENCHMANIPULATOR_H
 
+#include <Gui/WorkbenchManipulator.h>
 
-using namespace Fem;
-
-// returns a string which represent the object e.g. when printed in python
-std::string FemPostObjectPy::representation() const
+namespace MeasureGui
 {
-    std::stringstream str;
-    str << "<FemPostObject object at " << getFemPostObjectPtr() << ">";
 
-    return str.str();
-}
-
-PyObject* FemPostObjectPy::writeVTK(PyObject* args)
+class WorkbenchManipulator: public Gui::WorkbenchManipulator
 {
-    char* filename;
-    if (!PyArg_ParseTuple(args, "et", "utf-8", &filename)) {
-        return nullptr;
-    }
+protected:
+    void modifyMenuBar(Gui::MenuItem* menuBar) override;
+    void modifyToolBars(Gui::ToolBarItem* toolBar) override;
+};
 
-    std::string utf8Name(filename);
-    PyMem_Free(filename);
-    getFemPostObjectPtr()->writeVTK(utf8Name.c_str());
+}  // namespace MeasureGui
 
-    Py_Return;
-}
 
-PyObject* FemPostObjectPy::getCustomAttributes(const char* /*attr*/) const
-{
-    return nullptr;
-}
-
-int FemPostObjectPy::setCustomAttributes(const char* /*attr*/, PyObject* /*obj*/)
-{
-    return 0;
-}
+#endif  // MEASUREGUI_WORKBENCHMANIPULATOR_H

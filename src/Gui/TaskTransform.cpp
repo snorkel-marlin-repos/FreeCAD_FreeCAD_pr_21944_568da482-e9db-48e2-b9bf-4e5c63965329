@@ -515,7 +515,7 @@ void TaskTransform::onSelectionChanged(const SelectionChanges& msg)
             vp->setDraggerPlacement(vp->getObjectPlacement() * selectedObjectPlacement);
 
             if (msg.Type == SelectionChanges::AddSelection) {
-                moveObjectToDragger(getRelevantComponents());
+                moveObjectToDragger();
 
                 setSelectionMode(SelectionMode::None);
             }
@@ -545,11 +545,10 @@ void TaskTransform::onAlignToOtherObject()
     setSelectionMode(SelectionMode::SelectAlignTarget);
 }
 
-ViewProviderDragger::DraggerComponents TaskTransform::getRelevantComponents()
+void TaskTransform::moveObjectToDragger()
 {
     // Check which dragger components should be considered
     ViewProviderDragger::DraggerComponents components;
-
     if (ui->matchXcheckbox->isChecked()) {
         components |= ViewProviderDragger::DraggerComponent::XPos;
     }
@@ -579,11 +578,6 @@ ViewProviderDragger::DraggerComponents TaskTransform::getRelevantComponents()
         components &= ~ViewProviderDragger::DraggerComponent::ZRot;
     }
 
-    return components;
-}
-
-void TaskTransform::moveObjectToDragger(ViewProviderDragger::DraggerComponents components)
-{
     vp->updateTransformFromDragger();
     vp->updatePlacementFromDragger(components);
 

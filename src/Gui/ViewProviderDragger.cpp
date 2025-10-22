@@ -170,20 +170,6 @@ bool ViewProviderDragger::forwardToLink()
 
     return forwardedViewProvider != nullptr;
 }
-App::PropertyPlacement* ViewProviderDragger::getPlacementProperty() const
-{
-    auto object = getObject();
-
-    if (auto linkExtension = object->getExtensionByType<App::LinkBaseExtension>(true)) {
-        if (auto linkPlacementProp = linkExtension->getLinkPlacementProperty()) {
-            return linkPlacementProp;
-        }
-
-        return linkExtension->getPlacementProperty();
-    }
-
-    return getObject()->getPropertyByName<App::PropertyPlacement>("Placement");
-}
 
 bool ViewProviderDragger::setEdit(int ModNum)
 {
@@ -268,7 +254,7 @@ void ViewProviderDragger::dragMotionCallback(void* data, [[maybe_unused]] SoDrag
 
 void ViewProviderDragger::updatePlacementFromDragger(DraggerComponents components)
 {
-    const auto placement = getPlacementProperty();
+    const auto placement = getObject()->getPropertyByName<App::PropertyPlacement>("Placement");
 
     if (!placement) {
         return;
@@ -327,7 +313,6 @@ void ViewProviderDragger::updatePlacementFromDragger(DraggerComponents component
     }
 
     placement->setValue((finalDraggerPlacement * getTransformOrigin().inverse()));
-    updateDraggerPosition();
 }
 
 Base::Rotation Gui::ViewProviderDragger::orthonormalize(Base::Vector3d x,
@@ -393,7 +378,7 @@ void ViewProviderDragger::updateTransformFromDragger()
 
 Base::Placement ViewProviderDragger::getObjectPlacement() const
 {
-    if (auto placement = getPlacementProperty()) {
+    if (auto placement = getObject()->getPropertyByName<App::PropertyPlacement>("Placement")) {
         return placement->getValue();
     }
 
